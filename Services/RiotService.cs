@@ -3,7 +3,7 @@ using MyLoLTracker.Models;
 
 namespace MyLoLTracker.Services;
 
-public class RiotService
+public class RiotService : IRiotService
 {
     private readonly HttpClient _http;
     private readonly IMemoryCache _cache;

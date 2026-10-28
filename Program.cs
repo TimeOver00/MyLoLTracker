@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
-builder.Services.AddHttpClient<RiotService>();
+builder.Services.AddHttpClient<IRiotService, RiotService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -18,7 +18,7 @@ app.UseHttpsRedirection();
 
 app.MapGet("/hello", () => "Bonjour depuis MyLoLTracker !");
 app.MapGet("/version", () => new { version = "1.0.0", app = "MyLoLTracker" });
-app.MapGet("/summoner/{gameName}/{tagLine}", async (string gameName, string tagLine, RiotService riot) =>
+app.MapGet("/summoner/{gameName}/{tagLine}", async (string gameName, string tagLine, IRiotService riot) =>
 {
     var account = await riot.GetAccountAsync(gameName, tagLine);
     if (account is null)
@@ -37,7 +37,7 @@ app.MapGet("/summoner/{gameName}/{tagLine}", async (string gameName, string tagL
     });
 });
 
-app.MapGet("/summoner/{gameName}/{tagLine}/ranked", async (string gameName, string tagLine, RiotService riot) =>
+app.MapGet("/summoner/{gameName}/{tagLine}/ranked", async (string gameName, string tagLine, IRiotService riot) =>
 {
     var account = await riot.GetAccountAsync(gameName, tagLine);
     if (account is null)
@@ -56,7 +56,7 @@ app.MapGet("/summoner/{gameName}/{tagLine}/ranked", async (string gameName, stri
     }));
 });
 
-app.MapGet("/summoner/{gameName}/{tagLine}/matches", async (string gameName, string tagLine, RiotService riot, int count = 5) =>
+app.MapGet("/summoner/{gameName}/{tagLine}/matches", async (string gameName, string tagLine, IRiotService riot, int count = 5) =>
 {
     if (count is < 1 or > 20)
         return Results.BadRequest("count doit être entre 1 et 20");
