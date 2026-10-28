@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using System.Net;
+using Microsoft.Extensions.Caching.Memory;
 using MyLoLTracker.Models;
 
 namespace MyLoLTracker.Services;
@@ -75,8 +76,10 @@ public class RiotService : IRiotService
             return cached;
 
         var response = await _http.GetAsync(url);
-        if (!response.IsSuccessStatusCode)
+        if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
+        if (!response.IsSuccessStatusCode)
+            throw RiotApiException.From(response);
 
         var result = await response.Content.ReadFromJsonAsync<T>();
         if (result is not null)

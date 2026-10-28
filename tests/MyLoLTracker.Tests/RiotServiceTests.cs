@@ -74,11 +74,39 @@ public class RiotServiceTests
     }
 
     [Fact]
-    public async Task GetRankedAsync_ReturnsEmptyList_WhenRiotFails()
+    public async Task GetRankedAsync_ReturnsEmptyList_WhenRiotAnswers404()
     {
-        var service = CreateService(new FakeHandler(_ => Json("{}", HttpStatusCode.Forbidden)));
+        var service = CreateService(new FakeHandler(_ => Json("{}", HttpStatusCode.NotFound)));
 
         Assert.Empty(await service.GetRankedAsync("abc"));
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task GetAccountAsync_Throws_WhenApiKeyIsRejected(HttpStatusCode status)
+    {
+        var service = CreateService(new FakeHandler(_ => Json("{}", status)));
+
+        var ex = await Assert.ThrowsAsync<RiotApiException>(() => service.GetAccountAsync("Ahmed", "EUW"));
+
+        Assert.Contains("expirée", ex.Message);
+    }
+
+    [Fact]
+    public async Task GetAccountAsync_Throws_WithRetryAfter_WhenRateLimited()
+    {
+        var service = CreateService(new FakeHandler(_ =>
+        {
+            var response = Json("{}", HttpStatusCode.TooManyRequests);
+            response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(7));
+            return response;
+        }));
+
+        var ex = await Assert.ThrowsAsync<RiotApiException>(() => service.GetAccountAsync("Ahmed", "EUW"));
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, ex.UpstreamStatus);
+        Assert.Equal(TimeSpan.FromSeconds(7), ex.RetryAfter);
     }
 
     [Fact]

@@ -4,9 +4,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<RiotExceptionHandler>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IRiotService, RiotService>();
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
