@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<RiotService>();
 var app = builder.Build();
 
@@ -35,4 +36,36 @@ app.MapGet("/summoner/{gameName}/{tagLine}", async (string gameName, string tagL
         summoner.ProfileIconId
     });
 });
+
+app.MapGet("/summoner/{gameName}/{tagLine}/ranked", async (string gameName, string tagLine, RiotService riot) =>
+{
+    var account = await riot.GetAccountAsync(gameName, tagLine);
+    if (account is null)
+        return Results.NotFound("Joueur introuvable");
+
+    var entries = await riot.GetRankedAsync(account.Puuid);
+    return Results.Ok(entries.Select(e => new
+    {
+        e.QueueType,
+        e.Tier,
+        e.Rank,
+        e.LeaguePoints,
+        e.Wins,
+        e.Losses,
+        WinRate = Math.Round(100.0 * e.Wins / Math.Max(1, e.Wins + e.Losses), 1)
+    }));
+});
+
+app.MapGet("/summoner/{gameName}/{tagLine}/matches", async (string gameName, string tagLine, RiotService riot, int count = 5) =>
+{
+    if (count is < 1 or > 20)
+        return Results.BadRequest("count doit être entre 1 et 20");
+
+    var account = await riot.GetAccountAsync(gameName, tagLine);
+    if (account is null)
+        return Results.NotFound("Joueur introuvable");
+
+    return Results.Ok(await riot.GetRecentMatchesAsync(account.Puuid, count));
+});
+
 app.Run();
