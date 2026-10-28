@@ -130,7 +130,7 @@ public class RiotServiceTests
         var matches = await service.GetRecentMatchesAsync("abc", 1);
 
         var match = Assert.Single(matches);
-        Assert.Equal("Jinx", match.Champion);
+        Assert.Equal("Ahri", match.Champion);
         Assert.Equal("10/2/7", match.Kda);
         Assert.True(match.Win);
     }
