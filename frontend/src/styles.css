@@ -1,0 +1,23 @@
+:root {
+  --bg: #0a1428;
+  --surface: #121e36;
+  --surface-2: #1a2a4a;
+  --line: #2a3a5c;
+  --ink: #e8e4d8;
+  --ink-soft: #9aa5b8;
+  --gold: #c8aa6e;
+  --teal: #0ac8b9;
+  --loss: #e84057;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}

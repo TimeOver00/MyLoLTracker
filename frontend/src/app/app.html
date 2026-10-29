@@ -1,0 +1,64 @@
+<main>
+  <header>
+    <h1>MyLoLTracker</h1>
+    <p>Recherche un joueur League of Legends (serveur EUW).</p>
+  </header>
+
+  <form (submit)="$event.preventDefault(); search(name.value, tag.value)">
+    <input #name type="text" placeholder="Pseudo" aria-label="Pseudo" autocomplete="off" />
+    <span class="hash">#</span>
+    <input #tag type="text" placeholder="Tag" aria-label="Tag" value="EUW" autocomplete="off" />
+    <button type="submit" [disabled]="loading()">{{ loading() ? 'Recherche…' : 'Rechercher' }}</button>
+  </form>
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  @if (player(); as p) {
+    <section class="profile">
+      <img [src]="profileIcon(p.profile.profileIconId)" alt="" (error)="hideBrokenImage($event)" />
+      <div>
+        <h2>{{ p.profile.gameName }}<span class="tag">#{{ p.profile.tagLine }}</span></h2>
+        <p>Niveau {{ p.profile.summonerLevel }}</p>
+      </div>
+    </section>
+
+    <section>
+      <h3>Classement</h3>
+      @if (p.ranked.length === 0) {
+        <p class="muted">Pas encore classé cette saison.</p>
+      } @else {
+        <div class="ranked">
+          @for (entry of p.ranked; track entry.queueType) {
+            <article>
+              <span class="label">{{ queueLabel(entry.queueType) }}</span>
+              <strong>{{ entry.tier }} {{ entry.rank }}</strong>
+              <span>{{ entry.leaguePoints }} LP</span>
+              <span class="muted">{{ entry.wins }}V / {{ entry.losses }}D · {{ entry.winRate }} %</span>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section>
+      <h3>Derniers matchs</h3>
+      @if (p.matches.length === 0) {
+        <p class="muted">Aucun match récent.</p>
+      } @else {
+        <ul class="matches">
+          @for (m of p.matches; track m.matchId) {
+            <li [class.win]="m.win" [class.loss]="!m.win">
+              <img [src]="championIcon(m.champion)" alt="" (error)="hideBrokenImage($event)" />
+              <span class="champion">{{ m.champion }}</span>
+              <span class="kda">{{ m.kda }}</span>
+              <span class="muted">{{ m.gameMode }} · {{ duration(m.durationSeconds) }}</span>
+              <span class="result">{{ m.win ? 'Victoire' : 'Défaite' }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</main>

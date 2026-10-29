@@ -4,12 +4,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:4200"];
+builder.Services.AddCors(options => options.AddPolicy("frontend", policy => policy
+    .WithOrigins(allowedOrigins)
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .WithExposedHeaders("Retry-After")));
+
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<RiotExceptionHandler>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IRiotService, RiotService>();
 var app = builder.Build();
 
+app.UseCors("frontend");
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())

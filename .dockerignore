@@ -4,4 +4,5 @@
 .vs
 .github
 tests
+frontend
 *.md
